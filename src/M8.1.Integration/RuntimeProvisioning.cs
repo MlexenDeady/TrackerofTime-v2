@@ -13,8 +13,13 @@ public sealed class OoTRRuntimeWorkspace(string repositoryRoot, string temporary
 
     public string Prepare()
     {
-        var sourceHost = Path.Combine(repositoryRoot, "src", "OoTR.Host");
-        var sourceOoTR = Path.Combine(repositoryRoot, "third_party", "OoTR");
+        var portableRoot = Path.Combine(repositoryRoot, "Runtime");
+        var sourceHost = Directory.Exists(Path.Combine(portableRoot, "OoTR.Host"))
+            ? Path.Combine(portableRoot, "OoTR.Host")
+            : Path.Combine(repositoryRoot, "src", "OoTR.Host");
+        var sourceOoTR = Directory.Exists(Path.Combine(portableRoot, "OoTR"))
+            ? Path.Combine(portableRoot, "OoTR")
+            : Path.Combine(repositoryRoot, "third_party", "OoTR");
         if (!Directory.Exists(sourceHost) || !Directory.Exists(sourceOoTR)) throw new DirectoryNotFoundException("OoTR source is incomplete.");
         // Never reuse/delete a fixed runtime directory: a previous crashed host may still hold it.
         // Each V2 process gets its own isolated OoTR workspace.

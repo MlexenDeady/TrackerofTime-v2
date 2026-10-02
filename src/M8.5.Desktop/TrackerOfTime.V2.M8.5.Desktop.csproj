@@ -57,10 +57,10 @@
       <PortableInput Include="$(MSBuildProjectDirectory)\..\M8.3.DirectInput.Native\bin\mupen64plus-input-sdl-fix2l.dll" />
       <PortableNotice Include="$(MSBuildProjectDirectory)\..\..\THIRD_PARTY_NOTICES.md" Condition="Exists('$(MSBuildProjectDirectory)\..\..\THIRD_PARTY_NOTICES.md')" />
     </ItemGroup>
-    <Copy SourceFiles="@(PortableOoTR)" DestinationFiles="@(PortableOoTR->'$(PublishDir)third_party\OoTR\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(PortableOoTRHost)" DestinationFiles="@(PortableOoTRHost->'$(PublishDir)src\OoTR.Host\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(PortableGameCore)" DestinationFiles="@(PortableGameCore->'$(PublishDir)src\GameCore.Host\bin\Release\net8.0-windows\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(PortableInput)" DestinationFolder="$(PublishDir)src\M8.3.DirectInput.Native\bin\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PortableOoTR)" DestinationFiles="@(PortableOoTR->'$(PublishDir)Runtime\OoTR\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PortableOoTRHost)" DestinationFiles="@(PortableOoTRHost->'$(PublishDir)Runtime\OoTR.Host\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PortableGameCore)" DestinationFiles="@(PortableGameCore->'$(PublishDir)Runtime\GameCore\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PortableInput)" DestinationFolder="$(PublishDir)Runtime\Input\" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(PortableNotice)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

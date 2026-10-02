@@ -15,6 +15,7 @@ namespace TrackerOfTime.V2.M8_5.Desktop;
 
 public partial class RandomizerWorkspace : UserControl
 {
+    string GetOoTRRoot() { var portable = System.IO.Path.Combine(_root, "Runtime", "OoTR"); return System.IO.Directory.Exists(portable) ? portable : System.IO.Path.Combine(_root, "third_party", "OoTR"); }
     sealed record OptionDef(JsonElement Value, string Text, string Tooltip, string[] DisableSettings, string[] DisableSections, string[] DisableTabs, string[] ConditionalTargets, string[] Tags);
     sealed record SettingDef(string Key, string Text, string Type, string Tooltip, JsonElement Default, IReadOnlyList<OptionDef> Options, bool HideWhenDisabled, bool NoLineBreak, string Size, int? Min, int? Max, int? MaxLength, string Function, JsonElement FileTypes, JsonElement ConditionalControls, bool Dynamic, string[] Tags, bool Shared);
     sealed record SectionDef(string Id, string Text, string Subheader, int ColSpan, int[] RowSpan, bool IsColors, IReadOnlyList<SettingDef> Settings);
@@ -102,7 +103,7 @@ print(json.dumps({'tabs':tabs},separators=(',',':')))
 
     async Task<Schema> ExtractAsync()
     {
-        var ootr = System.IO.Path.Combine(_root, "third_party", "OoTR");
+        var ootr = GetOoTRRoot();
         if (!System.IO.File.Exists(System.IO.Path.Combine(ootr, "SettingsToJson.py"))) throw new System.IO.FileNotFoundException("OoTR-Komponente SettingsToJson.py fehlt.");
         var psi = new ProcessStartInfo("py") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = ootr };
         psi.ArgumentList.Add("-3.13"); psi.ArgumentList.Add("-c"); psi.ArgumentList.Add(ExtractScript);
@@ -293,7 +294,7 @@ print(json.dumps({'tabs':tabs},separators=(',',':')))
         // Match Original OoTR Electron: presets_default.json first, then every JSON
         // from data/Presets in filename order. Earlier/system names stay protected.
         var result = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
-        var data = System.IO.Path.Combine(_root, "third_party", "OoTR", "data");
+        var data = System.IO.Path.Combine(GetOoTRRoot(), "data");
         void AddPresetFile(string path)
         {
             if (!System.IO.File.Exists(path)) return;
@@ -439,7 +440,7 @@ print(json.dumps({'tabs':tabs},separators=(',',':')))
     {
         if (sender is not Button { Tag: SettingDef d }) return;
         if (d.Function == "openOutputDir" && _draftValues.TryGetValue("output_dir", out var p) && p.ValueKind == JsonValueKind.String && System.IO.Directory.Exists(p.GetString())) Process.Start(new ProcessStartInfo("explorer.exe", p.GetString()!) { UseShellExecute = true });
-        else if (d.Function == "openPythonDir") Process.Start(new ProcessStartInfo("explorer.exe", System.IO.Path.Combine(_root, "third_party", "OoTR")) { UseShellExecute = true });
+        else if (d.Function == "openPythonDir") Process.Start(new ProcessStartInfo("explorer.exe", GetOoTRRoot()) { UseShellExecute = true });
     }
 
     void DraftChanged(string key, JsonElement value)
@@ -736,7 +737,7 @@ print(json.dumps({'tabs':tabs},separators=(',',':')))
         var run=System.IO.Path.Combine(outputDir,"Patch-"+DateTime.Now.ToString("yyyyMMdd-HHmmss-fff"));System.IO.Directory.CreateDirectory(run); var settings=_draftValues.ToDictionary(x=>x.Key,x=>JsonElementToObject(x.Value)); settings["rom"]=rom;settings["output_dir"]=run;settings["patch_file"]=PatchFileBox.Text;settings["repatch_cosmetics"]=RepatchCosmeticsBox.IsChecked==true;
         foreach(var kv in _customColors) if(_draftValues.TryGetValue(kv.Key,out var v)&&v.ValueKind==JsonValueKind.String&&v.GetString()=="Custom Color") settings[kv.Key]=kv.Value.TrimStart('#');
         var temp=System.IO.Path.Combine(_paths.Temporary,"ootr-patch-"+Guid.NewGuid().ToString("N")+".json");System.IO.Directory.CreateDirectory(_paths.Temporary);await System.IO.File.WriteAllTextAsync(temp,JsonSerializer.Serialize(settings));
-        try { var ootr=System.IO.Path.Combine(_root,"third_party","OoTR");var psi=new ProcessStartInfo("py"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=ootr};psi.ArgumentList.Add("-3.13");psi.ArgumentList.Add("OoTRandomizer.py");psi.ArgumentList.Add("--settings");psi.ArgumentList.Add(temp);psi.ArgumentList.Add("--no_log");using var proc=Process.Start(psi)??throw new InvalidOperationException("Original OoTR patch process could not start.");_generationCts=new();CancelButton.IsEnabled=true;StatusText.Text="Generating from Original OoTR patch file …";var so=proc.StandardOutput.ReadToEndAsync();var se=proc.StandardError.ReadToEndAsync();await proc.WaitForExitAsync(_generationCts.Token);var err=await se;if(proc.ExitCode!=0)throw new InvalidOperationException("Original OoTR patch generation failed: "+err.Trim());OutputText.Text=$"Patch output: {run}";StatusText.Text="Patch generation complete with Original OoTR."; }
+        try { var ootr=GetOoTRRoot();var psi=new ProcessStartInfo("py"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=ootr};psi.ArgumentList.Add("-3.13");psi.ArgumentList.Add("OoTRandomizer.py");psi.ArgumentList.Add("--settings");psi.ArgumentList.Add(temp);psi.ArgumentList.Add("--no_log");using var proc=Process.Start(psi)??throw new InvalidOperationException("Original OoTR patch process could not start.");_generationCts=new();CancelButton.IsEnabled=true;StatusText.Text="Generating from Original OoTR patch file …";var so=proc.StandardOutput.ReadToEndAsync();var se=proc.StandardError.ReadToEndAsync();await proc.WaitForExitAsync(_generationCts.Token);var err=await se;if(proc.ExitCode!=0)throw new InvalidOperationException("Original OoTR patch generation failed: "+err.Trim());OutputText.Text=$"Patch output: {run}";StatusText.Text="Patch generation complete with Original OoTR."; }
         finally { try{System.IO.File.Delete(temp);}catch{} }
     });
 

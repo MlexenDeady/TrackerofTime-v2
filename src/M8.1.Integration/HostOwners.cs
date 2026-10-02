@@ -106,7 +106,10 @@ public sealed class GameCoreHostOwner(string repositoryRoot, string runtimePath,
         // Golden M5 launches the Windows apphost EXE directly. Keep that process identity/loader path
         // intact here instead of hosting GameCore under dotnet.exe; this is especially important for
         // native SDL/OpenGL driver discovery on legacy Windows graphics stacks.
-        var exe = Path.Combine(repositoryRoot, "src", "GameCore.Host", "bin", "Release", "net8.0-windows", "TrackerOfTime.V2.GameCore.Host.exe");
+        var portableExe = Path.Combine(repositoryRoot, "Runtime", "GameCore", "TrackerOfTime.V2.GameCore.Host.exe");
+        var exe = File.Exists(portableExe)
+            ? portableExe
+            : Path.Combine(repositoryRoot, "src", "GameCore.Host", "bin", "Release", "net8.0-windows", "TrackerOfTime.V2.GameCore.Host.exe");
         if (!File.Exists(exe)) throw new FileNotFoundException("GameCore.Host Release apphost not found. Build the solution first.", exe);
         var psi = new ProcessStartInfo(exe) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = Path.GetDirectoryName(exe)! };
         psi.Environment["TOT_GAMECORE_RUNTIME"] = runtimePath; psi.Environment["TOT_GAMECORE_RENDERER"] = renderer;

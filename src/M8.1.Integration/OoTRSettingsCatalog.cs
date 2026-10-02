@@ -33,7 +33,8 @@ print(json.dumps(out, separators=(',', ':')))
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(repositoryRoot);
         ArgumentException.ThrowIfNullOrWhiteSpace(ooTRVersion);
-        var ootrRoot = Path.Combine(repositoryRoot, "third_party", "OoTR");
+        var portableOoTR = Path.Combine(repositoryRoot, "Runtime", "OoTR");
+        var ootrRoot = Directory.Exists(portableOoTR) ? portableOoTR : Path.Combine(repositoryRoot, "third_party", "OoTR");
         var settingsList = Path.Combine(ootrRoot, "SettingsList.py");
         if (!File.Exists(settingsList)) throw new FileNotFoundException("Frozen Original OoTR SettingsList.py not found.", settingsList);
 

@@ -22,8 +22,9 @@ public static class M83DirectXInputPlugin
         var backup = input + ".fix2l-original";
         if (!File.Exists(backup)) File.Copy(input, backup, true);
 
+        var portableInput = Path.Combine(repositoryRoot, "Runtime", "Input", "mupen64plus-input-sdl-fix2l.dll");
         var nativeDir = Path.Combine(repositoryRoot, "src", "M8.3.DirectInput.Native");
-        var built = Path.Combine(nativeDir, "bin", "mupen64plus-input-sdl-fix2l.dll");
+        var built = File.Exists(portableInput) ? portableInput : Path.Combine(nativeDir, "bin", "mupen64plus-input-sdl-fix2l.dll");
         string evidence;
 
         // Portable releases ship the already-built x64 provider. End users must not

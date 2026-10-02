@@ -36,6 +36,8 @@ public partial class App : Application
  }
 
  static bool IsApplicationRoot(string path) =>
-  Directory.Exists(Path.Combine(path,"third_party","OoTR")) &&
-  Directory.Exists(Path.Combine(path,"src","OoTR.Host"));
+  (Directory.Exists(Path.Combine(path,"Runtime","OoTR")) &&
+   Directory.Exists(Path.Combine(path,"Runtime","OoTR.Host"))) ||
+  (Directory.Exists(Path.Combine(path,"third_party","OoTR")) &&
+   Directory.Exists(Path.Combine(path,"src","OoTR.Host")));
 }
