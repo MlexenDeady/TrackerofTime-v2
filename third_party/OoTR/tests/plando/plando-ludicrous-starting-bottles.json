@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "item_pool_value": "ludicrous",
+    "starting_inventory": [
+      "bottle",
+      "bottle2",
+      "bottle3",
+      "letter"
+    ]
+  }
+}

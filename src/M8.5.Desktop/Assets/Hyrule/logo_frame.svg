@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="150" viewBox="0 0 560 150">
+<defs>
+ <linearGradient id="bronze" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f0c968"/><stop offset=".28" stop-color="#9b6c21"/><stop offset=".55" stop-color="#e1b54d"/><stop offset="1" stop-color="#4c2d0d"/></linearGradient>
+ <linearGradient id="dark" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#13241b"/><stop offset="1" stop-color="#020705"/></linearGradient>
+ <filter id="shadow"><feGaussianBlur stdDeviation="2"/><feOffset dy="2"/><feComponentTransfer><feFuncA type="linear" slope=".8"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<path d="M18 18 C55 5 95 11 128 8 C178 4 214 15 262 10 C313 5 363 11 410 7 C458 4 501 8 536 22 L546 46 C537 64 541 89 526 112 C492 132 449 127 408 134 C355 141 307 132 259 137 C207 142 159 132 112 136 C75 139 42 131 20 116 C9 93 14 67 7 45 Z" fill="url(#dark)" stroke="#2a1607" stroke-width="8" filter="url(#shadow)"/>
+<path d="M22 21 C72 10 115 19 158 13 C204 7 242 19 282 14 C329 8 374 18 421 12 C467 7 504 13 531 27 C538 49 530 68 535 88 C529 105 513 117 492 123 C447 126 411 121 369 129 C319 136 278 126 233 132 C184 138 143 126 98 131 C66 134 39 124 25 111 C18 90 22 66 14 47 Z" fill="none" stroke="url(#bronze)" stroke-width="5"/>
+<!-- left organic corner -->
+<g fill="none" stroke="url(#bronze)" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M18 48 C44 43 52 22 77 21 C60 32 57 48 67 61 C80 76 101 65 101 45 C107 66 95 82 77 83 C54 84 42 68 29 76 C19 82 19 99 32 109" stroke-width="4"/>
+ <path d="M29 45 C42 34 46 20 38 13 C57 16 69 29 66 43 C62 57 45 65 33 58" stroke-width="2.5"/>
+ <path d="M43 100 C55 89 70 90 79 101 C65 97 56 104 54 119" stroke-width="2.5"/>
+ <path d="M82 27 C94 19 109 22 115 33 C102 29 94 35 91 47" stroke-width="2"/>
+</g>
+<!-- right organic corner -->
+<g transform="translate(560 0) scale(-1 1)" fill="none" stroke="url(#bronze)" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M18 48 C44 43 52 22 77 21 C60 32 57 48 67 61 C80 76 101 65 101 45 C107 66 95 82 77 83 C54 84 42 68 29 76 C19 82 19 99 32 109" stroke-width="4"/>
+ <path d="M29 45 C42 34 46 20 38 13 C57 16 69 29 66 43 C62 57 45 65 33 58" stroke-width="2.5"/>
+ <path d="M43 100 C55 89 70 90 79 101 C65 97 56 104 54 119" stroke-width="2.5"/>
+</g>
+<!-- engraved vines top/bottom -->
+<path d="M116 18 C158 33 195 4 235 18 S314 31 354 17 S430 4 476 20" fill="none" stroke="#c99a3a" stroke-width="2" opacity=".8"/>
+<path d="M106 129 C152 114 191 141 236 127 S319 114 360 129 S435 141 486 122" fill="none" stroke="#80551a" stroke-width="2"/>
+<path d="M118 18 C128 8 137 10 142 20 C135 17 128 21 126 29 M465 20 C455 8 446 10 441 20 C448 17 455 21 457 29" fill="none" stroke="#e5bd56" stroke-width="2"/>
+</svg>

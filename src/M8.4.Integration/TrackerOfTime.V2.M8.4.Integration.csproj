@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net8.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><EnableWindowsTargeting>true</EnableWindowsTargeting><Platforms>AnyCPU;x64</Platforms></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\M8.Application.Core\TrackerOfTime.V2.M8.Application.Core.csproj" />
+    <ProjectReference Include="..\M8.1.Integration\TrackerOfTime.V2.M8.1.Integration.csproj" />
+    <ProjectReference Include="..\M8.2.Integration\TrackerOfTime.V2.M8.2.Integration.csproj" />
+    <ProjectReference Include="..\M8.3.Integration\TrackerOfTime.V2.M8.3.Integration.csproj" />
+  </ItemGroup>
+</Project>

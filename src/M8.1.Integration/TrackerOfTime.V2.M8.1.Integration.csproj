@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net8.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><EnableWindowsTargeting>true</EnableWindowsTargeting><Platforms>AnyCPU;x64</Platforms></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\M8.Application.Core\TrackerOfTime.V2.M8.Application.Core.csproj" />
+    <ProjectReference Include="..\M8.Integration\TrackerOfTime.V2.M8.Integration.csproj" />
+    <ProjectReference Include="..\M7.Workflow\TrackerOfTime.V2.M7.Workflow.csproj" />
+    <ProjectReference Include="..\TrackerOfTime.V2.Randomizer\TrackerOfTime.V2.Randomizer.csproj" />
+    <ProjectReference Include="..\GameCore.Contracts\TrackerOfTime.V2.GameCore.Contracts.csproj" />
+    <ProjectReference Include="..\GameCore.Client\TrackerOfTime.V2.GameCore.Client.csproj" />
+    <ProjectReference Include="..\M6.Memory\TrackerOfTime.V2.M6.Memory.csproj" />
+    <ProjectReference Include="..\M6.CheckState\TrackerOfTime.V2.M6.CheckState.csproj" />
+    <ProjectReference Include="..\M6.SnapshotAdapter\TrackerOfTime.V2.M6.SnapshotAdapter.csproj" />
+  </ItemGroup>
+</Project>

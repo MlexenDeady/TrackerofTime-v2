@@ -1,0 +1,20 @@
+{
+  "settings":                  {
+    "shuffle_smallkeys":                       "any_dungeon",
+    "shuffle_hideoutkeys":                     "any_dungeon",
+    "shuffle_tcgkeys":                         "any_dungeon",
+    "key_rings":                               [
+      "Forest Temple",
+      "Water Temple",
+      "Ganons Castle",
+      "Spirit Temple",
+      "Thieves Hideout",
+      "Fire Temple",
+      "Shadow Temple",
+      "Gerudo Training Ground",
+      "Bottom of the Well",
+      "Treasure Chest Game"
+    ],
+    "mq_dungeons_mode":                        "mq"
+  }
+}

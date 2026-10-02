@@ -1,0 +1,73 @@
+For pot/crate/freestanding shuffle settings, a custom flag system is used to determine how to shuffle a collectible item, and keep track of collection.
+
+These flags, called xflags, contain the following information about an actor (see xflag_t struct typedef in get_items.h):
+  scene
+  scene setup
+  room
+  flag - primarily the actor spawn index (position of the actor within the actor list)
+  subflag - used for actors that spawn multiple items like rupee towers or goron pot
+
+Every actor has been hacked to include additional memory to store this flag.
+
+For room-spawned actors, after the actor is spawned and initialized, the new flag 
+is stored during a hook at the end of Actor_UpdateAll (the function that spawns the actors in a room) see Actor_After_UpdateAll_Hack
+
+For collectible items that are dropped (as opposed to spawned in the scene), the flag is stored in the global variable drop_collectible_override_flag 
+from the actor dropping the item (pot/crate/etc.)
+During Item00 actor initialization, this flag is retrieved and stored into the actor.
+
+---------------------------------------
+Flag tables
+---------------------------------------
+The flags for overridden collectible items are stored as individual bits in the bit map:
+collectible_override_flags
+
+To determine the bit offset in this bit map for a particular flag, the following lookup tables are used:
+xflag_scene_table - contains offsets into xflag_room_table for the current scene. This is indexed directly by scene_id. Scenes that do not have any flags are stored as 0xFFFF
+xflag_room_table - starting at the offset obtained from xflag_scene_table, contains a list of offsets into xflag_room_blob for all of room/setup combinations in the scene that contain flags we are interested in
+xflag_room_blob - starting at the offset obtained from xflag_room_table, contains the bitmap offset for this scene/room/setup, followed by a compressed table of actor bit map offsets.
+
+The data in xflag_room_blob is a compressed table whose indices represent the actor index for every actor in a given scene. 
+The value stored at each index is the bitmap offset for that actor from the start of the bitmap for the current scene/room/setup
+
+Here's an example of what this table looks like for the child scene setup for goron city:
+This setup contains the following actors of interest:
+| ID | Actor        |
+| 41 | Spinning Pot |   The goron city pot is special because it uses "sub flags". This is because this actor can spawn 8 overridden collectible items so it needs to be able to reserve 8 flags
+| 42 | Pot          |
+| 43 | Pot          |
+| 44 | Pot          |
+| 45 | Pot          |
+| 46 | Pot          |
+
+The table would contain the following
+[0] = 0
+...
+[40] = 0
+[41] = 0    this is the first actually used entry representing the spinning pot. It contains 0 because this actor's flag will be stored at the start of the bitmap for this room/setup. 
+[42] = 8    As stated above the spining pot reserves 8 bits of the bitmap because it has 8 sub flags for the items that it can drop
+[43] = 9
+[44] = 10
+[45] = 11
+[46] = 12   This is the last actually interesting piece of data in the table.
+[47] = 12   
+...
+[255] = 12   Maximum of 255 entries in the table. 
+
+This data is compressed by differential encoding + run-length coding and stored in the blob
+
+The function get_xflag_bit_offset will iterate through the tables described above, retrieve the actor table for the room, and return the bit offset into collectible_override_flags for a given actor's flag
+
+--------------------
+Alternative overrides
+--------------------
+A handful of collectibles exist within multiple scene setups. In order to consistently shuffle these items across multiple sets, an "alternative override" system is used.
+
+These alternative overrides are stored in a table "alt_overrides" with entries of the form:
+typedef struct { 
+    override_key_t  alt;
+    override_key_t  primary;
+} alt_override_t;
+
+When determining an override search key for an xflag, the alt_table is searched for the key. 
+If the table contains the key, it uses the "primary" entry as the correct key.

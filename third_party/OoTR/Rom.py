@@ -1,0 +1,569 @@
+from __future__ import annotations
+import copy
+import json
+import os
+import platform
+import subprocess
+from collections.abc import Iterator, Sequence
+from typing import Optional
+import logging
+import struct
+import importlib
+
+try:
+    import numpy
+except ImportError:
+    pass
+
+from Models import restrictiveBytes
+from Utils import is_bundled, subprocess_args, local_path, data_path, get_version_bytes
+from crc import calculate_crc
+from ntype import BigStream
+from version import base_version, branch_identifier, supplementary_version
+
+DMADATA_START: int = 0x7430  # NTSC 1.0/1.1: 0x7430, NTSC 1.2: 0x7960, Debug: 0x012F70
+OVERLAY_TABLE_START: int = 0xB5E490 # NTSC 1.0
+OVERLAY_TABLE_OFFSET: int = 0
+OVERLAY_TABLE_ENTRY_SIZE: int = 0x20
+PAUSE_PLAYER_OVERLAY_TABLE_START: int = 0xB743E0
+PAUSE_PLAYER_OVERLAY_TABLE_ENTRY_SIZE: int = 0x1C
+PAUSE_PLAYER_OVERLAY_TABLE_OFFSET: int = 4
+
+NUM_OVERLAY_ENTRIES: int = 0x1D7
+NUM_PAUSE_PLAYER_OVERLAY_ENTRIES: int = 2
+
+class Rom(BigStream):
+    def __init__(self, file: Optional[str] = None) -> None:
+        super().__init__(bytearray())
+
+        self.original: Rom = self
+        # Changed addresses are keyed on the address as an array index.
+        # 1000 is a pre-filled padding value in the changed buffer that
+        # is safe to exclude as all the changed bytes are uint8 (<255).
+        # 1000 values get filtered out by the patching functions.
+        # Size is 128MiB to ensure any extra data appended to the 64MiB
+        # vanilla uncompressed ROM is captured.
+        self.changed_address: numpy.ndarray = numpy.full(134217728, 1000, numpy.uint16)
+        self.changed_dma: dict[int, tuple[int, int, int]] = {}
+        self.force_patch: list[int] = []
+        self.overlay_table: list[OverlayEntry] = []
+        self.dma: DMAIterator = DMAIterator(self, DMADATA_START)
+
+        with open(data_path('generated/symbols.json'), 'r') as stream:
+            symbols = json.load(stream)
+            self.symbols: dict[str, int] = {name: {'address': int(sym['address'], 16), 'length': sym['length']} for name, sym in symbols.items()}
+
+        with open(data_path('generated/patch_symbols.json'), 'r') as stream:
+            self.patch_symbols: dict[str, int] = json.load(stream)
+
+        if file is None:
+            return
+
+        decompressed_file: str = local_path('ZOOTDEC.z64')
+
+        os.chdir(local_path())
+
+        if os.path.isfile(decompressed_file):
+            # Try to read from previously decompressed rom if one exists.
+            try:
+                self.read_rom(decompressed_file)
+            except (FileNotFoundError, RuntimeError):
+                # Decompress the provided file.
+                if not file:
+                    raise FileNotFoundError('Must specify path to base ROM')
+                self.read_rom(file, decompressed_file)
+        elif file:
+            self.read_rom(file, decompressed_file)
+        else:
+            raise FileNotFoundError('Must specify path to base ROM')
+
+        # Add file to maximum size
+        self.buffer.extend(bytearray([0x00] * (0x4000000 - len(self.buffer))))
+        self.original = self.copy()
+        self.overlay_table: list[OverlayEntry] = OverlayTable.read_overlay_table(self, OVERLAY_TABLE_START, OVERLAY_TABLE_OFFSET, OVERLAY_TABLE_ENTRY_SIZE, NUM_OVERLAY_ENTRIES) + OverlayTable.read_overlay_table(self, PAUSE_PLAYER_OVERLAY_TABLE_START, PAUSE_PLAYER_OVERLAY_TABLE_OFFSET, PAUSE_PLAYER_OVERLAY_TABLE_ENTRY_SIZE, NUM_PAUSE_PLAYER_OVERLAY_ENTRIES)
+        # Add version number to header.
+        self.write_version_bytes()
+
+    def copy(self) -> Rom:
+        new_rom: Rom = Rom()
+        new_rom.original = self.original
+        new_rom.buffer = copy.copy(self.buffer)
+        new_rom.changed_address = self.changed_address.copy()
+        new_rom.changed_dma = copy.copy(self.changed_dma)
+        new_rom.force_patch = copy.copy(self.force_patch)
+        new_rom.overlay_table = copy.copy(self.overlay_table)
+        return new_rom
+
+    def read_rom(self, input_file: str, output_file: Optional[str] = None, verify_crc: bool = True) -> None:
+        try:
+            with open(input_file, 'rb') as stream:
+                self.buffer = bytearray(stream.read())
+        except FileNotFoundError as ex:
+            raise FileNotFoundError(f'Invalid path to Base ROM: "{input_file}"')
+
+        # Validate ROM file
+        if not verify_crc:
+            return
+
+        valid_crc = [
+            [0xEC, 0x70, 0x11, 0xB7, 0x76, 0x16, 0xD7, 0x2B], # Compressed
+            [0x70, 0xEC, 0xB7, 0x11, 0x16, 0x76, 0x2B, 0xD7], # Byteswap compressed
+            [0x93, 0x52, 0x2E, 0x7B, 0xE5, 0x06, 0xD4, 0x27], # Decompressed
+        ]
+
+        file_name = os.path.splitext(input_file)
+        rom_crc = list(self.buffer[0x10:0x18])
+        if rom_crc not in valid_crc:
+            # Bad CRC validation
+            raise RuntimeError(f'ROM file {input_file} is not a valid OoT 1.0 US ROM.')
+        elif len(self.buffer) < 0x2000000 or len(self.buffer) > 0x4000000 or file_name[1].lower() not in ('.z64', '.n64'):
+            # ROM is too big, or too small, or a bad type
+            raise RuntimeError(f'ROM file {input_file} is not a valid OoT 1.0 US ROM.')
+        elif len(self.buffer) == 0x2000000:
+            # If Input ROM is compressed, then Decompress it
+            if output_file:
+                self.decompress_rom(input_file, output_file, verify_crc)
+            else:
+                raise RuntimeError('ROM was unable to be decompressed. Please supply an already decompressed ROM.')
+        else:
+            # ROM file is a valid and already uncompressed
+            pass
+
+    def decompress_rom(self, input_file: str, output_file: str, verify_crc: bool = True) -> None:
+        sub_dir = "./" if is_bundled() else "bin/Decompress/"
+
+        if platform.system() == 'Windows':
+            if platform.machine() == 'AMD64':
+                subcall = [sub_dir + "Decompress.exe", input_file, output_file]
+            elif platform.machine() == 'ARM64':
+                subcall = [sub_dir + "Decompress_ARM64.exe", input_file, output_file]
+            else:
+                subcall = [sub_dir + "Decompress32.exe", input_file, output_file]
+        elif platform.system() == 'Linux':
+            if platform.machine() in ('arm64', 'aarch64', 'aarch64_be', 'armv8b', 'armv8l'):
+                subcall = [sub_dir + "Decompress_ARM64", input_file, output_file]
+            elif platform.machine() in ('arm', 'armv7l', 'armhf'):
+                subcall = [sub_dir + "Decompress_ARM32", input_file, output_file]
+            else:
+                subcall = [sub_dir + "Decompress", input_file, output_file]
+        elif platform.system() == 'Darwin':
+            if platform.machine() == 'arm64':
+                subcall = [sub_dir + "Decompress_ARM64.out", input_file, output_file]
+            else:
+                subcall = [sub_dir + "Decompress.out", input_file, output_file]
+        else:
+            raise RuntimeError('Unsupported operating system for decompression. Please supply an already decompressed ROM.')
+
+        subprocess.check_call(subcall, **subprocess_args())
+        self.read_rom(output_file, verify_crc=verify_crc)
+
+    def read_s8(self, address: Optional[int] = None) -> int:
+        if address is None:
+            address = self.last_address
+        return int.from_bytes(self.read_bytes(address, 1), 'big', signed=True)
+
+    def read_s16(self, address: Optional[int] = None) -> int:
+        if address is None:
+            address = self.last_address
+        return int.from_bytes(self.read_bytes(address, 2), 'big', signed=True)
+
+    def read_s32(self, address: Optional[int] = None) -> int:
+        if address is None:
+            address = self.last_address
+        return int.from_bytes(self.read_bytes(address, 4), 'big', signed=True)
+
+    def read_float(self, address: Optional[int] = None) -> float:
+        if address is None:
+            address = self.last_address
+        return bytes_to_float(self.read_bytes(address, 4))
+
+    def write_byte(self, address: int, value: int) -> None:
+        if address >= 0x1F12000 and address <= 0x3471000:
+            raise Exception(f'Attempted to write to forbidden region in vanilla scene/room files')
+        super().write_byte(address, value)
+        self.changed_address[self.last_address-1] = value
+
+    def write_bytes(self, address: int, values: Sequence[int], overwrite_scenes: bool = False) -> None:
+        if address >= 0x1F12000 and address <= 0x3471000 and not overwrite_scenes:
+            raise Exception(f'Attempted to write to forbidden region in vanilla scene/room files')
+        super().write_bytes(address, values)
+        if isinstance(values, (bytearray, bytes)):
+            self.changed_address[address:address + len(values)] = numpy.frombuffer(values, dtype=numpy.uint8)
+        else:
+            self.changed_address[address:address + len(values)] = values
+
+    def write_s16(self, address: int, value: int) -> None:
+        if address >= 0x1F12000 and address <= 0x3471000:
+            raise Exception(f'Attempted to write to forbidden region in vanilla scene/room files')
+        self.write_bytes(address, int.to_bytes(value, 2, 'big', signed=True))
+
+    def write_s32(self, address: int, value: int) -> None:
+        if address >= 0x1F12000 and address <= 0x3471000:
+            raise Exception(f'Attempted to write to forbidden region in vanilla scene/room files')
+        self.write_bytes(address, int.to_bytes(value, 4, 'big', signed=True))
+
+    def revert_patch(self, patch_name: str) -> None:
+        # Get the _START and _END symbols
+        patch_start = OverlayTable.VRAM_2_VROM(self.overlay_table, self.patch_symbols[patch_name + "_START"])
+        patch_end = OverlayTable.VRAM_2_VROM(self.overlay_table, self.patch_symbols[patch_name + "_END"])
+        orig_bytes = self.original.read_bytes(patch_start, patch_end - patch_start)
+        self.write_bytes(patch_start, orig_bytes)
+
+    def restore(self) -> None:
+        self.buffer = copy.copy(self.original.buffer)
+        self.changed_address = numpy.full(134217728, 1000, numpy.uint16)
+        self.changed_dma = {}
+        self.force_patch = []
+        self.last_address = 0
+        self.write_version_bytes()
+
+    def sym(self, symbol_name: str) -> int:
+        return self.symbols[symbol_name]['address']
+
+    def sym_length(self, symbol_name: str) -> int:
+        return self.symbols[symbol_name]['length']
+
+    def write_to_file(self, file: str) -> None:
+        self.verify_dmadata()
+        self.update_header()
+        with open(file, 'wb') as outfile:
+            outfile.write(self.buffer)
+
+    def update_header(self) -> None:
+        crc = calculate_crc(self)
+        self.write_bytes(0x10, crc)
+
+    def write_version_bytes(self) -> None:
+        version_bytes = get_version_bytes(base_version, branch_identifier, supplementary_version)
+        self.write_bytes(0x19, version_bytes[:5])
+        self.write_bytes(0x35, version_bytes[:3])
+        self.force_patch.extend([0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x35, 0x36, 0x37])
+
+    def read_version_bytes(self) -> bytearray:
+        version_bytes = self.read_bytes(0x19, 5)
+        secondary_version_bytes = self.read_bytes(0x35, 3)
+        for i in range(3):
+            if secondary_version_bytes[i] != version_bytes[i]:
+                return secondary_version_bytes
+        return version_bytes
+
+    # dmadata/file management helper functions
+
+    def verify_dmadata(self) -> None:
+        overlapping_records = []
+        dma_data = []
+
+        for dma_entry in self.dma:
+            this_start, this_end, this_size = dma_entry.as_tuple()
+
+            if this_start == 0 and this_end == 0:
+                break
+
+            dma_data.append((this_start, this_end, this_size))
+
+        dma_data.sort()
+
+        for i in range(0, len(dma_data) - 1):
+            this_start, this_end, this_size = dma_data[i]
+            next_start, next_end, next_size = dma_data[i + 1]
+
+            if this_end > next_start:
+                overlapping_records.append(
+                    f'0x{this_start:08X} - 0x{this_end:08X} (Size: 0x{this_size:04X})\n0x{next_start:08X} - 0x{next_end:08X} (Size: 0x{next_size:04X})'
+                )
+
+        if len(overlapping_records) > 0:
+            raise Exception("Overlapping DMA Data Records!\n%s" %
+                            '\n-------------------------------------\n'.join(overlapping_records))
+
+    # update dmadata record with start vrom address "key"
+    # if key is not found, then attempt to add a new dmadata entry
+    def update_dmadata_record_by_key(self, key: Optional[int], start: int, end: int, from_file: Optional[int] = None) -> None:
+        dma_entry = self.dma.get_dmadata_record_by_key(key)
+        if dma_entry is None:
+            raise Exception(f"dmadata update failed: key {key:{'x' if key else ''}} not found in dmadata and dma table is full.")
+
+        if from_file is None:
+            from_file = -1 if key is None else key
+        old_end = dma_entry.end
+        dma_entry.update(start, end, from_file)
+        logger = logging.getLogger('')
+        if key is None:
+            logger.debug(f'Added DMA entry {dma_entry.index} with start 0x{start:08X}, end 0x{end:08X}, length 0x{end-start:08X}')
+        else:
+            logger.debug(f'Updated DMA entry {dma_entry.index} at {from_file:08X} (length 0x{old_end - key:08X}) to start 0x{start:08X}, end 0x{end:08X}, length 0x{end-start:08X}')
+
+    # This will scan for any changes that have been made to the DMA table
+    # By default, this assumes any changes here are new files, so this should only be called
+    # after patching in the new files, but before vanilla files are repointed
+    def scan_dmadata_update(self, preserve_from_file: bool = False, assume_move: bool = False) -> None:
+        for dma_entry in self.dma:
+            dma_start, dma_end, dma_size = dma_entry.as_tuple()
+            old_dma_start, old_dma_end, old_dma_size = self.original.dma[dma_entry.index].as_tuple()
+            if (dma_start == 0 and dma_end == 0) and (old_dma_start == 0 and old_dma_end == 0):
+                break
+
+            # If the entries do not match, the flag the changed entry
+            if not (dma_start == old_dma_start and dma_end == old_dma_end):
+                from_file = -1
+                if preserve_from_file and dma_entry.index in self.changed_dma:
+                    from_file = self.changed_dma[dma_entry.index][0]
+                elif assume_move and dma_entry.index < 1496:
+                    from_file = old_dma_start
+                self.changed_dma[dma_entry.index] = (from_file, dma_start, dma_end - dma_start)
+
+    # This will rescan the entire ROM, compare to original ROM, and repopulate changed_address.
+    def rescan_changed_bytes(self) -> None:
+        self.changed_address = numpy.full(134217728, 1000, numpy.uint16)
+        size = len(self.buffer)
+        original_size = len(self.original.buffer)
+        for i, byte in enumerate(self.buffer):
+            if i >= original_size:
+                self.changed_address[i] = byte
+                continue
+            orig_byte = self.original.read_byte(i)
+            if byte != orig_byte:
+                self.changed_address[i] = byte
+        if size < original_size:
+            self.changed_address[size:original_size] = [0 for _ in range(original_size - size)]
+
+class DMAEntry:
+    def __init__(self, rom: Rom, index: int) -> None:
+        self.rom = rom
+        self.index = index
+        if self.index < 0 or self.index > self.rom.dma.dma_entries:
+            raise ValueError(f"DMAEntry: Index out of range: {self.index}")
+
+    @property
+    def start(self) -> int:
+        return self.rom.read_int32(self.rom.dma.dma_start + (self.index * 0x10))
+
+    @property
+    def end(self) -> int:
+        return self.rom.read_int32(self.rom.dma.dma_start + (self.index * 0x10) + 0x04)
+
+    @property
+    def size(self) -> int:
+        return self.end - self.start
+
+    def as_tuple(self) -> tuple[int, int, int]:
+        start, end = self.start, self.end
+        return start, end, end - start
+
+    def file_bytes(self) -> bytearray:
+        start, end, size = self.as_tuple()
+        return self.rom.read_bytes(start, size)
+
+    def update(self, start: int, end: int, from_file: Optional[int] = None):
+        if from_file is None:
+            if self.index in self.rom.changed_dma:
+                from_file = self.rom.changed_dma[self.index][0]
+            elif self.start and self.end:
+                from_file = self.start
+            else:
+                from_file = -1
+        self.rom.write_int32s(self.rom.dma.dma_start + (self.index * 0x10), [start, end, start, 0])
+        self.rom.changed_dma[self.index] = (from_file, start, end - start)
+
+
+class DMAIterator:
+    def __init__(self, rom: Rom, dma_start: int) -> None:
+        self.rom: Rom = rom
+        self.dma_start: int = dma_start
+        self.dma_index: int = 0
+        self.dma_end: int = 0
+        self._dma_entries: int = 0
+
+    @property
+    def dma_entries(self) -> int:
+        if not self._dma_entries:
+            self._calculate_dma_entries()
+        return self._dma_entries
+
+    def _calculate_dma_entries(self) -> None:
+        i = start = -1
+        while start != self.dma_start:
+            i += 1
+            if i > 2000:
+                dma_bytes = self.rom.read_bytes(self.rom.dma.dma_start, 160).hex(' ', 4)
+                raise Exception(f"DMA entry for DMA table not found. Attempted to find DMA entry starting at {self.dma_start}. First 160 bytes of DMA table: {dma_bytes}")
+            start = self.rom.read_int32(self.rom.dma.dma_start + (i * 0x10))
+        self.dma_index = i
+        self.dma_end = self.rom.read_int32(self.dma_start + (self.dma_index * 0x10) + 0x04)
+        self._dma_entries = (self.dma_end - self.dma_start) >> 4
+
+    def __getitem__(self, item: int) -> DMAEntry:
+        if not isinstance(item, int):
+            raise ValueError("DMAIterator only supports integer keys.")
+        if item < 0:
+            item = self.dma_entries + item
+        if item > self.dma_entries:
+            raise ValueError(f"Attempted to get DMA entry exceeding the table size: {item}")
+
+        return DMAEntry(self.rom, item)
+
+    def __iter__(self) -> Iterator[DMAEntry]:
+        for item in range(0, self.dma_entries):
+            yield self[item]
+
+    # Gets a dmadata entry by the file start position.
+    def get_dmadata_record_by_key(self, key: Optional[int]) -> DMAEntry:
+        for dma_entry in self:
+            if key is None and dma_entry.end == 0 and dma_entry.start == 0:
+                return dma_entry
+            elif dma_entry.start == key:
+                return dma_entry
+        raise Exception(f"`get_dmadata_record_by_key`: DMA Start '{key}' not found in the DMA Table.")
+
+    # Gets the last used byte of rom defined in the DMA table
+    def end_of_data(self) -> int:
+        max_end = 0
+        for dma_entry in self:
+            max_end = max(max_end, dma_entry.end)
+
+        max_end = ((max_end + 0x0F) >> 4) << 4
+        return max_end
+
+    # Finds the smallest suitable place between current files. If size is None, find the largest span of free space.
+    def free_space(self, size: Optional[int] = None) -> int:
+        free_space = []  # List of tuples containing size of free space and start of free space.
+
+        # Get DMA entries in tuple form and then sort them.
+        files = sorted([dma_entry.as_tuple() for dma_entry in self])
+
+        # Find free space between files.
+        for i in range(len(files)):
+            end_current = ((files[i][1] + 0x0F) >> 4) << 4
+            start_next = ((files[i+1][0] + 0x0F) >> 4) << 4 if i+1 < len(files) else len(self.rom.buffer)
+            if end_current < start_next and (start_next < 0x1F12000 or end_current > 0x3471000) :
+                free_space.append((start_next - end_current, end_current))
+
+        free_space.sort()
+        if not free_space:
+            raise Exception(f"No free space in ROM. This should never happen. DMA entries: {self.dma_entries}")
+
+        if size is None:
+            # Return the largest free space.
+            return free_space[-1][1]
+        else:
+            # Return the smallest area of free space that fits size.
+            try:
+                return next(filter(lambda f: f[0] >= size, free_space))[1]
+            except StopIteration:
+                raise Exception(f"Not enough free space in ROM to fit a file of size {size}. Largest region of free space available: {free_space[-1][0]}.")
+
+class OverlayEntry:
+    def __init__(self, vrom_start: int, vrom_end: int, vram_start: int, vram_end: int) -> None:
+        self.vrom_start: int = vrom_start
+        self.vrom_end: int = vrom_end
+        self.vram_start: int = vram_start
+        self.vram_end: int = vram_end
+
+class OverlayTable:
+    def read_overlay_table(rom: Rom, ovl_table_start: int, offset: int, entry_size: int, num_entries: int) -> None:
+        overlay_entries: list[OverlayEntry] = []
+        # Read the overlay table from the ROM
+        for i in range(0, num_entries):
+            entry_bytes = rom.read_bytes(ovl_table_start + i * entry_size, entry_size)
+            vrom_start = int.from_bytes(entry_bytes[offset + 0:offset +4], 'big')
+            vrom_end = int.from_bytes(entry_bytes[offset + 4:offset +8], 'big')
+            vram_start = int.from_bytes(entry_bytes[offset + 8:offset +12], 'big')
+            vram_end = int.from_bytes(entry_bytes[offset + 12:offset +16], 'big')
+            overlay_entries.append(OverlayEntry(vrom_start, vrom_end, vram_start, vram_end))
+        return overlay_entries
+
+    def VRAM_2_VROM(overlay_entries: list[OverlayEntry], vram_address: int) -> int:
+        # Loop through overlay table and find the entry containing the address
+        for overlay_entry in overlay_entries:
+            if overlay_entry.vram_start <= vram_address and overlay_entry.vram_end > vram_address:
+                return vram_address - overlay_entry.vram_start + overlay_entry.vrom_start
+        raise Exception("Overlay address not found in table")
+
+# halfword length coordinates
+class Vec3s:
+    def __init__(self, x: int = 0, y: int = 0, z: int = 0) -> None:
+        self.x: int = x
+        self.y: int = y
+        self.z: int = z
+
+    @staticmethod
+    def decode(rom: Rom, addr: int) -> Vec3s:
+        return Vec3s(
+            rom.read_s16(addr),
+            rom.read_s16(addr + 2),
+            rom.read_s16(addr + 4),
+        )
+
+    def encode(self) -> bytearray:
+        bytes: bytearray = bytearray()
+        bytes.extend(self.x.to_bytes(2, 'big', signed=True))
+        bytes.extend(self.y.to_bytes(2, 'big', signed=True))
+        bytes.extend(self.z.to_bytes(2, 'big', signed=True))
+        return bytes
+
+    def copy(self) -> Vec3s:
+        return Vec3s(
+            self.x,
+            self.y,
+            self.z
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Vec3s):
+            return NotImplemented
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
+    def __str__(self) -> str:
+        return f'({self.x}, {self.y}, {self.z})'
+
+    def __repr__(self) -> str:
+        return f'({self.x}, {self.y}, {self.z})'
+
+
+# word length coordinates
+class Vec3i:
+    def __init__(self, x: int = 0, y: int = 0, z: int = 0) -> None:
+        self.x: int = x
+        self.y: int = y
+        self.z: int = z
+
+    @staticmethod
+    def decode(rom: Rom, addr: int) -> Vec3i:
+        return Vec3i(
+            rom.read_s32(addr),
+            rom.read_s32(addr + 4),
+            rom.read_s32(addr + 8),
+        )
+
+    def encode(self) -> bytearray:
+        bytes: bytearray = bytearray()
+        bytes.extend(self.x.to_bytes(4, 'big', signed=True))
+        bytes.extend(self.y.to_bytes(4, 'big', signed=True))
+        bytes.extend(self.z.to_bytes(4, 'big', signed=True))
+        return bytes
+
+    def copy(self) -> Vec3i:
+        return Vec3i(
+            self.x,
+            self.y,
+            self.z
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Vec3i):
+            return NotImplemented
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
+    def __str__(self) -> str:
+        return f'({self.x}, {self.y}, {self.z})'
+
+    def __repr__(self) -> str:
+        return f'({self.x}, {self.y}, {self.z})'
+
+
+def bytes_to_float(b: bytearray) -> float:
+    return struct.unpack('!f', b)[0]
+
+
+def float_to_bytes(f: float) -> bytes:
+    return struct.pack('>f', f)

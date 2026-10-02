@@ -1,0 +1,192 @@
+TRACKER OF TIME V2 — SOURCE AVAILABLE LICENSE
+English / Deutsch
+
+Copyright © 2026 MlexenDeady. All Rights Reserved.
+
+======================================================================
+ENGLISH VERSION
+======================================================================
+
+1. Scope
+
+This license applies to the original source code, application code, user
+interface code, project files, documentation, and other original material
+of Tracker of Time V2 that is owned by MlexenDeady (the "Software").
+
+Third-party software, libraries, source code, assets, trademarks, game
+content, and other third-party material are not licensed under this license.
+They remain subject to their respective licenses, copyright notices, and
+terms.
+
+2. Source Availability
+
+The source code of the Software is made publicly available for viewing,
+inspection, reference, and personal educational purposes only.
+
+Public availability of the source code does not grant an open-source
+license and does not place the Software in the public domain.
+
+3. Restrictions
+
+Unless prior explicit written permission has been granted by MlexenDeady,
+you may not:
+
+- copy or redistribute the Software or substantial portions of it;
+- modify, adapt, translate, or create derivative works based on the Software;
+- publish, sublicense, sell, rent, lease, or otherwise distribute the Software;
+- incorporate the Software or substantial portions of it into another project,
+  application, product, or service;
+- distribute modified or unmodified builds of the Software;
+- use the Software or its source code for commercial purposes;
+- represent the Software, or a derivative of it, as your own work.
+
+Normal technical copies made automatically by Git, a web browser, or similar
+tools solely for the purpose of accessing and viewing the public repository
+do not constitute permission to redistribute or reuse the Software.
+
+4. Personal Use of Official Releases
+
+Officially distributed builds of Tracker of Time V2 may be used for personal,
+non-commercial purposes. This permission does not grant the right to
+redistribute, modify, reverse engineer for the purpose of creating a competing
+or derivative distribution, or commercially exploit the Software.
+
+5. Third-Party Components
+
+Third-party components are expressly excluded from this license.
+
+In particular, the OoT Randomizer (OoTR) source located under
+`third_party/OoTR/` is developed by the OoTRandomizer project and its
+contributors and remains subject to the license files and notices supplied
+with that component.
+
+Other third-party components, including emulator components and libraries,
+remain subject to their respective upstream licenses and copyright notices.
+Nothing in this license changes, replaces, restricts, or expands rights
+granted by those third-party licenses.
+
+6. Game Content and Trademarks
+
+No rights are granted by this license to Nintendo software, ROM images, game
+data, characters, names, logos, trademarks, or other intellectual property
+owned by Nintendo or any other third party.
+
+Tracker of Time V2 is an independent project. Ownership of third-party names,
+trademarks, software, and other protected material remains with their
+respective owners.
+
+7. Permission Requests
+
+Any use of the Software beyond the permissions expressly granted by this
+license requires prior explicit written permission from MlexenDeady.
+
+8. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. TO THE MAXIMUM EXTENT
+PERMITTED BY APPLICABLE LAW, THE COPYRIGHT HOLDER SHALL NOT BE LIABLE FOR ANY
+CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.
+
+9. Reservation of Rights
+
+All rights not expressly granted by this license are reserved by MlexenDeady.
+
+
+======================================================================
+DEUTSCHE VERSION
+======================================================================
+
+Copyright © 2026 MlexenDeady. Alle Rechte vorbehalten.
+
+1. Geltungsbereich
+
+Diese Lizenz gilt für den ursprünglichen Quellcode, Anwendungscode,
+Benutzeroberflächen-Code, Projektdateien, Dokumentationen und sonstigen
+eigenständigen Inhalte von Tracker of Time V2, deren Rechte bei MlexenDeady
+liegen (die „Software“).
+
+Software, Bibliotheken, Quellcode, Assets, Marken, Spielinhalte und sonstige
+Materialien Dritter werden nicht unter dieser Lizenz lizenziert. Für diese
+gelten ausschließlich ihre jeweiligen Lizenzen, Urheberrechtshinweise und
+Nutzungsbedingungen.
+
+2. Öffentliche Einsehbarkeit des Quellcodes
+
+Der Quellcode der Software wird ausschließlich zur Einsicht, Prüfung,
+Referenz und zu persönlichen Bildungszwecken öffentlich zugänglich gemacht.
+
+Die öffentliche Zugänglichkeit des Quellcodes stellt keine Open-Source-Lizenz
+dar und überführt die Software nicht in die Gemeinfreiheit.
+
+3. Einschränkungen
+
+Ohne vorherige ausdrückliche schriftliche Genehmigung von MlexenDeady ist es
+nicht gestattet:
+
+- die Software oder wesentliche Teile davon zu kopieren oder weiterzuverbreiten;
+- die Software zu verändern, anzupassen, zu übersetzen oder davon abgeleitete
+  Werke zu erstellen;
+- die Software zu veröffentlichen, unterzulizenzieren, zu verkaufen, zu
+  vermieten oder anderweitig zu verbreiten;
+- die Software oder wesentliche Teile davon in ein anderes Projekt, eine
+  Anwendung, ein Produkt oder einen Dienst zu übernehmen;
+- veränderte oder unveränderte Builds der Software zu verbreiten;
+- die Software oder ihren Quellcode kommerziell zu verwenden;
+- die Software oder davon abgeleitete Werke als eigene Arbeit auszugeben.
+
+Normale technische Kopien, die durch Git, einen Webbrowser oder vergleichbare
+Werkzeuge ausschließlich zum Zugriff auf und zur Betrachtung des öffentlichen
+Repositories automatisch entstehen, stellen keine Erlaubnis zur
+Weiterverbreitung oder Wiederverwendung der Software dar.
+
+4. Private Nutzung offizieller Veröffentlichungen
+
+Offiziell veröffentlichte Builds von Tracker of Time V2 dürfen für private,
+nicht kommerzielle Zwecke verwendet werden. Diese Erlaubnis gewährt kein Recht,
+die Software weiterzuverbreiten, zu verändern, zum Zweck der Erstellung einer
+konkurrierenden oder abgeleiteten Distribution zurückzuentwickeln oder
+kommerziell zu verwerten.
+
+5. Drittanbieter-Komponenten
+
+Drittanbieter-Komponenten sind ausdrücklich von dieser Lizenz ausgenommen.
+
+Insbesondere der unter `third_party/OoTR/` enthaltene Quellcode des OoT
+Randomizer (OoTR) wird vom OoTRandomizer-Projekt und dessen Mitwirkenden
+entwickelt und unterliegt weiterhin den mit dieser Komponente bereitgestellten
+Lizenzdateien und Hinweisen.
+
+Andere Drittanbieter-Komponenten, einschließlich Emulator-Komponenten und
+Bibliotheken, unterliegen weiterhin ihren jeweiligen ursprünglichen Lizenzen
+und Urheberrechtshinweisen. Diese Lizenz verändert, ersetzt, beschränkt oder
+erweitert keine Rechte, die durch solche Drittanbieter-Lizenzen eingeräumt
+werden.
+
+6. Spielinhalte und Marken
+
+Diese Lizenz gewährt keinerlei Rechte an Nintendo-Software, ROM-Abbildern,
+Spieldaten, Charakteren, Namen, Logos, Marken oder sonstigem geistigen Eigentum
+von Nintendo oder anderen Dritten.
+
+Tracker of Time V2 ist ein unabhängiges Projekt. Die Rechte an Namen, Marken,
+Software und sonstigen geschützten Inhalten Dritter verbleiben bei den
+jeweiligen Rechteinhabern.
+
+7. Genehmigungen
+
+Jede Nutzung der Software, die über die in dieser Lizenz ausdrücklich
+eingeräumten Rechte hinausgeht, bedarf der vorherigen ausdrücklichen
+schriftlichen Genehmigung von MlexenDeady.
+
+8. Gewährleistungsausschluss
+
+DIE SOFTWARE WIRD „WIE BESEHEN“ UND OHNE JEGLICHE AUSDRÜCKLICHE ODER
+STILLSCHWEIGENDE GEWÄHRLEISTUNG BEREITGESTELLT. SOWEIT GESETZLICH ZULÄSSIG,
+HAFTET DER RECHTEINHABER NICHT FÜR ANSPRÜCHE, SCHÄDEN ODER SONSTIGE HAFTUNG,
+DIE AUS DER SOFTWARE ODER IHRER NUTZUNG ENTSTEHEN.
+
+9. Vorbehalt aller Rechte
+
+Alle Rechte, die durch diese Lizenz nicht ausdrücklich eingeräumt werden,
+bleiben MlexenDeady vorbehalten.

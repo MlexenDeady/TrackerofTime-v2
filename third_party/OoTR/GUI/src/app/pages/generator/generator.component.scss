@@ -1,0 +1,598 @@
+@import '../../../app/@theme/styles/themes';
+
+@include nb-install-component() {
+  .pageContainer {
+    height: 100%;
+  }
+
+  nb-card {
+    height: 97%; // Web is defined in styles.scss
+    overflow: inherit;
+    line-height: 1.25;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+
+    nb-card-body {
+      padding: 0;
+    }
+  }
+
+  ::ng-deep .tabset {
+    li.disabled {
+      opacity: 0.4 !important;
+    }
+
+    li {
+      line-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+
+      @media (max-width: 995px) {
+        line-height: 15px;
+      }
+    }
+
+    a {
+
+      @media (max-width: 770px) {
+        padding-right: 7px !important;
+        padding-left: 7px !important;
+      }
+
+      @media (max-width: 550px) {
+        padding-right: 2.8px !important;
+        padding-left: 2.8px !important;
+      }
+    }
+
+    span {
+      @media (max-width: 770px) {
+        font-size: 14px;
+      }
+
+      @media (max-width: 693px) {
+        font-size: 12.6px;
+      }
+
+      @media (max-width: 510px) {
+        font-size: 11.2px;
+      }
+    }
+  }
+
+  ::ng-deep nb-spinner {
+    background-color: nb-theme(spinner-background-color) !important;
+  }
+
+  .settingsTabset {
+    height: calc(91vh - 260px);
+    min-height: 490px;
+    padding: 0 7px !important;
+
+    @media (max-width: 400px) {
+      height: calc(88vh - 260px);
+      min-height: 460px;
+    }
+
+    nb-tab {
+      height: 102.5%; //adjust for top offset
+      padding: nb-theme(padding-top-nb-tab) 3.5px 0 3.5px;
+    }
+  }
+
+  .footerTabset {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: nb-theme(footer-height);
+    margin: 0 auto;
+    margin-top: 5px;
+
+    @media (max-width: 700px) {
+      height: 210px;
+    }
+
+    nb-tab {
+      padding: 17.5px;
+
+      @media (max-width: 680px) {
+        padding: 17.5px 7px 7px 7px;
+      }
+    }
+  }
+
+  mat-grid-list {
+    height: 100% !important;
+  }
+
+  mat-grid-tile {
+    border: 1px solid nb-theme(color-info-100);
+  }
+
+  mat-grid-tile-header {
+    height: 25px;
+  }
+
+  .mat-slide-toggle {
+    margin-right: 28px;
+  }
+
+  nb-input {
+    margin-right: 28px;
+  }
+
+  .input-sm {
+    padding-top: 2.1px;
+    padding-bottom: 2.1px;
+    margin-right: 28px;
+  }
+
+  .btn-small {
+    padding: 3.85px 21px;
+  }
+
+  .radioGroupLabel {
+    margin-bottom: 11.2px;
+  }
+
+  .oneLineComboBox {
+    display: inline-block !important;
+    margin-bottom: 10px;
+  }
+
+  //One line combobox (e.g. Navi color options)
+  .oLCBLabelFirst {
+    width: 160px;
+    left: 0px;
+    text-align: left;
+
+    @media (max-width: 1248px) {
+      width: 110px;
+    }
+  }
+
+  .oLCBLabelSecond {
+    width: 106px;
+    left: 0px;
+    text-align: right;
+    margin-right: 12px;
+
+    @media (max-width: 1536px) {
+      width: 104px;
+      margin-right: 8px;
+    }
+
+    @media (max-width: 1248px) {
+      width: 58px;
+      margin-right: 6px;
+    }
+  }
+
+  .oLCBSelect {
+    width: 21%;
+    margin-right: 10px;
+
+    @media (max-width: 1290px) {
+      margin-right: 2px;
+      width: 23%;
+    }
+
+    @media (max-width: 1248px) {
+      margin-right: 2px;
+      width: 27%;
+    }
+
+    @media (max-width: 1000px) {
+      margin-right: 2px;
+      width: 28%;
+    }
+
+    @media (max-width: 970px) {
+      margin-right: 2px;
+      width: 29%;
+    }
+
+    @media (max-width: 920px) {
+      margin-right: 2px;
+      width: 23%;
+    }
+  }
+
+  .tileContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    overflow: hidden;
+    overflow-y: auto;
+
+    .tileContent {
+      position: relative;
+      height: calc(100% - 15px);
+      left: 7px;
+      top: 7px;
+      margin-right: 13px;
+      font-weight: 400;
+      padding: nb-theme(tile-padding);
+
+      ::ng-deep button span {
+        font-size: 11.2px;
+      }
+
+      ::ng-deep span, p, div {
+        white-space: pre-line;
+        line-height: 1.2;
+        font-size: 14px;
+
+        @media (max-width: 1350px) {
+          font-size: 13.3px;
+        }
+
+        @media (max-width: 1000px) {
+          font-size: 12.6px;
+        }
+
+        @media (max-width: 400px) {
+          font-size: 11.2px;
+        }
+
+        @media (max-width: 340px) {
+          font-size: 9.8px;
+        }
+      }
+    }
+  }
+
+  .tileContainerWithHeader {
+    height: calc(100% - 25px);
+    top: 13px;
+
+    .tileContent {
+      height: calc(100% - 7px);
+    }
+  }
+
+  .subheaderLabel {
+    position: relative;
+    left: 10px;
+    line-height: 15px;
+  }
+
+  .comboBoxLabel {
+    position: relative;
+    display: block;
+    padding-left: 10px;
+
+    &.oneLineComboBox {
+      padding-left: 0;
+    }
+  }
+
+  .radioGroupLabel {
+    position: relative;
+    left: 10px;
+  }
+
+  .radioButton {
+    margin-right: 10px;
+  }
+
+  .selectXSmall {
+    max-width: 300px;
+  }
+
+  div.select-wrapper {
+    display: flex;
+
+    nb-select {
+      flex-grow: 1;
+    }
+  }
+
+  img.select-info {
+    content: "o";
+    width: 26px;
+    height: 26px;
+    padding: 13px;
+    font-size: 2em;
+    margin-left: 5px;
+    background-image: nb-theme(tooltip-src);
+    background-repeat: no-repeat;
+    background-position: center center;
+    cursor: pointer;
+
+    &.info-icon-colors {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    &.disabled {
+      opacity: 0;
+    }
+  }
+
+  p.numberTextInputLabel {
+    position: relative;
+    left: 10px;
+    line-height: 0;
+    margin-bottom: 0;
+    margin-top: 8px !important;
+  }
+
+  mat-grid-tile div .numberTextInput {
+    position: relative;
+    left: 15px;
+    max-width: 36px;
+    text-align: center;
+    padding-left: 5.25px !important;
+    padding-right: 5.25px !important;
+    margin-right: 28px;
+  }
+
+  .numberTextInputSmall {
+    max-width: 50px;
+  }
+
+  .numberTextInputMedium {
+    max-width: 120px;
+  }
+
+  .numberTextInputFull {
+    left: 0px;
+    width: 100%;
+    max-width: initial !important;
+    text-align: left;
+    padding-right: initial !important;
+    margin-top: 5.6px;
+    margin-right: 14px !important;
+  }
+
+  .colorPickerContainer {
+    height: 0px;
+    width: 0px;
+    overflow: hidden;
+  }
+
+  .scale {
+    position: relative;
+    top: -7px;
+    min-width: 100%;
+    pointer-events: none; //Reduces the clickable part to just the visible slider itself
+
+    ::ng-deep .mat-slider-wrapper {
+      pointer-events: auto;
+    }
+  }
+
+  .ioInputLabel {
+    position: relative;
+    left: 10px;
+    line-height: 0;
+    margin-bottom: 0;
+    margin-top: 8px !important;
+  }
+
+  .ioInput {
+    position: relative;
+    left: 0px;
+    width: calc(100% - 120px);
+    text-align: left;
+    padding-left: 5.25px !important;
+    margin-top: 5.6px;
+    margin-right: 14px !important;
+  }
+
+  .ioInputWeb {
+    position: relative;
+    left: 0px;
+    width: calc(100% - 230px);
+    text-align: left;
+    padding-left: 5.25px !important;
+    margin-top: 5.6px;
+    margin-right: 14px !important;
+  }
+
+  .ioHiddenInputWeb {
+    display: none;
+  }
+
+  .ioInputBrowseButton {
+    margin-right: 6px !important;
+  }
+
+  .presetButton {
+    margin-top: 14px !important;
+    margin-right: 6px !important;
+  }
+
+  .settingButton {
+    margin-top: 14px !important;
+    margin-right: 6px !important;
+  }
+
+  .footerInputLabel {
+    position: relative;
+    left: 10px;
+    line-height: 0px;
+    margin-bottom: 0px;
+    margin-top: 3px;
+  }
+
+  .footerInput {
+    position: relative;
+    left: 0px;
+    width: calc(100% - 200px);
+    text-align: left;
+    padding-left: 5.25px !important;
+    margin-top: 14px !important;
+    margin-right: 14px !important;
+
+    @media (max-width: 550px) {
+      width: calc(100% - 120px);
+      margin-right: 7px !important;
+    }
+
+    @media (max-width: 430px) {
+      width: calc(100% - 90px);
+      margin-right: 2.8px !important;
+    }
+  }
+
+  .footerInputWeb {
+    position: relative;
+    left: 0px;
+    width: calc(100% - 290px);
+    text-align: left;
+    padding-left: 5.25px !important;
+    margin-top: 14px !important;
+    margin-right: 14px !important;
+
+    @media (max-width: 550px) {
+      width: calc(100% - 210px);
+      margin-right: 7px !important;
+    }
+
+    @media (max-width: 430px) {
+      width: calc(100% - 180px);
+      margin-right: 2.8px !important;
+    }
+  }
+
+  .footerInputShort {
+    position: relative;
+    left: 0px;
+    width: calc(100% - 290px);
+    text-align: left;
+    padding-left: 5.25px !important;
+    margin-top: 14px !important;
+    margin-right: 14px !important;
+
+    @media (max-width: 550px) {
+      width: calc(100% - 190px);
+      margin-right: 7px !important;
+    }
+
+    @media (max-width: 430px) {
+      width: calc(100% - 150px);
+      margin-right: 2.8px !important;
+    }
+  }
+
+  .footerButton {
+    margin-right: 6px !important;
+
+    @media (max-width: 550px) {
+      width: 50px;
+      font-size: 11.2px !important;
+      margin-right: 3px !important;
+      padding-right: 0 !important;
+      padding-left: 0 !important;
+    }
+
+    @media (max-width: 430px) {
+      width: 40px;
+      font-size: 9.8px !important;
+      margin-right: 2px !important;
+    }
+  }
+
+  .footerButtonPatchFileBrowse {
+    margin-right: 6px !important;
+
+    @media (max-width: 550px) {
+      width: 90px;
+      font-size: 11.62px !important;
+      margin-right: 3px !important;
+      padding-right: 0 !important;
+      padding-left: 0 !important;
+    }
+
+    @media (max-width: 430px) {
+      width: 70px;
+      font-size: 9.8px !important;
+      margin-right: 2px !important;
+    }
+  }
+
+  .footerGenerateButton {
+    position: absolute;
+    width: calc(100% - 40px) !important;
+    bottom: 13px;
+
+    @media (max-width: 680px) {
+      width: calc(100% - 15px) !important;
+    }
+  }
+
+  .footerGenerateButtonNormalSmall {
+    position: absolute;
+    width: calc(50% - 20px) !important;
+    bottom: 13px;
+    margin-right: 6px !important;
+
+    @media (max-width: 680px) {
+      width: calc(50% - 25px) !important;
+    }
+
+    @media (max-width: 450px) {
+      width: calc(50% - 15px) !important;
+      left: 10px;
+      font-size: 9.8px !important;
+    }
+  }
+
+  .footerGenerateButtonRaceSmall {
+    position: absolute;
+    width: calc(50% - 20px) !important;
+    left: calc(50% - 20px + 25px) !important;
+    bottom: 13px;
+    padding: 10.5px 21px !important;
+    margin-right: 6px !important;
+
+    @media (max-width: 680px) {
+      width: calc(50% - 25px) !important;
+      left: calc(50% - 25px + 40px) !important;
+    }
+
+    @media (max-width: 450px) {
+      width: calc(50% - 15px) !important;
+      left: calc(50% - 15px + 20px) !important;
+      font-size: 9.8px !important;
+    }
+  }
+
+  .webLayout { //Use slightly bigger padding to accommodate mobile better
+    .footerGenerateButton {
+      bottom: 5px;
+    }
+
+    .footerGenerateButtonNormalSmall {
+      bottom: 5px;
+    }
+  }
+
+  .tabsetPadding {
+    height: 30px;
+  }
+
+  .settingPadding {
+    height: 8px;
+  }
+
+  .settingCBPadding {
+    height: 13px;
+  }
+
+  //Disabled elements
+  p.disabled {
+    opacity: 0.38;
+  }
+
+  span.disabled {
+    opacity: 0.38;
+  }
+
+  input:disabled {
+    opacity: 0.38;
+  }
+}

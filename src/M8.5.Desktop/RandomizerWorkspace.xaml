@@ -1,0 +1,69 @@
+<UserControl x:Class="TrackerOfTime.V2.M8_5.Desktop.RandomizerWorkspace"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <UserControl.Resources>
+  <!-- Original OoTR default theme uses black basic text on light form surfaces.
+       Keep the V2 shell/frame, but do not inherit the shell gold/white foreground into OoTR input surfaces. -->
+  <Style TargetType="TextBox">
+   <Setter Property="Foreground" Value="#F4E7BE"/><Setter Property="Background" Value="#101815"/><Setter Property="CaretBrush" Value="#F4E7BE"/>
+   <Setter Property="SelectionBrush" Value="#315D4A"/><Setter Property="SelectionTextBrush" Value="#FFFFFF"/>
+  </Style>
+  <Style TargetType="ListBox">
+   <Setter Property="Foreground" Value="#F4E7BE"/><Setter Property="Background" Value="#101815"/>
+  </Style>
+  <Style TargetType="ListBoxItem">
+   <Setter Property="Foreground" Value="#F4E7BE"/><Setter Property="Background" Value="#101815"/>
+  </Style>
+  <Style TargetType="ToolTip">
+   <Setter Property="Foreground" Value="#F4E7BE"/><Setter Property="Background" Value="#101815"/>
+  </Style>
+  <Style TargetType="TabControl"><Setter Property="Foreground" Value="#F4E7BE"/><Setter Property="Background" Value="#07100D"/></Style>
+  <Style TargetType="TabItem">
+   <Setter Property="Foreground" Value="#E8D69E"/><Setter Property="Background" Value="#0B1511"/><Setter Property="BorderBrush" Value="#725817"/><Setter Property="Padding" Value="10,4"/>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="TabBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}" Margin="1,0"><ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="TabBorder" Property="Background" Value="#13231A"/><Setter TargetName="TabBorder" Property="BorderBrush" Value="#D2A735"/><Setter Property="Foreground" Value="#FFF0A8"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="TabBorder" Property="BorderBrush" Value="#E3BB4C"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+  </Style>
+ </UserControl.Resources>
+ <Grid Background="#050B08">
+  <Grid.RowDefinitions><RowDefinition Height="58"/><RowDefinition Height="42"/><RowDefinition Height="*"/><RowDefinition Height="190"/></Grid.RowDefinitions>
+  <Border Background="#08110D" BorderBrush="#725817" BorderThickness="0,0,0,2" Padding="18,8">
+   <Grid>
+    <StackPanel><TextBlock Text="⚒  OCARINA OF TIME RANDOMIZER" Foreground="#E3BB4C" FontFamily="Georgia" FontWeight="Bold" FontSize="19"/><TextBlock x:Name="SourceText" Text="Original OoTR Electron generator schema" Foreground="#829087" FontSize="10"/></StackPanel>
+    <TextBlock x:Name="CountText" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#D5A93A"/>
+   </Grid>
+  </Border>
+  <Border Grid.Row="1" Background="#07100D" BorderBrush="#3F3519" BorderThickness="0,0,0,1" Padding="8,4">
+   <ListBox x:Name="TabList" Background="Transparent" BorderThickness="0" SelectionChanged="TabList_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+    <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="Foreground" Value="#D5DDD7"/><Setter Property="Padding" Value="18,6"/><Setter Property="Margin" Value="2,0"/><Setter Property="HorizontalContentAlignment" Value="Center"/></Style></ListBox.ItemContainerStyle>
+   </ListBox>
+  </Border>
+  <Border Grid.Row="2" Style="{StaticResource PanelBorder}" Margin="8">
+   <Grid Margin="10"><Grid.RowDefinitions><RowDefinition Height="36"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <TextBlock x:Name="PageTitle" Foreground="#E3BB4C" FontFamily="Georgia" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"/>
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="SectionsHost"/></ScrollViewer>
+   </Grid>
+  </Border>
+  <Border Grid.Row="3" Background="#07100D" BorderBrush="#725817" BorderThickness="0,2,0,0" Padding="8,5">
+   <Grid><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <TabControl Background="Transparent" BorderThickness="0">
+     <TabItem Header="Generate New Seed">
+      <Grid Margin="8,5"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="115"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <TextBlock Text="SETTINGS STRING" Foreground="#E3BB4C" FontWeight="Bold" VerticalAlignment="Center"/><TextBox x:Name="SettingsStringBox" Grid.Column="1" Margin="8,2" MaxLength="2000"/><StackPanel Grid.Column="2" Orientation="Horizontal"><Button Content="COPY" Click="CopySettings_Click"/><Button Content="IMPORT" Click="ImportSettings_Click"/></StackPanel>
+       <TextBlock Grid.Row="1" Text="SEED" Foreground="#E3BB4C" FontWeight="Bold" VerticalAlignment="Center"/><TextBox x:Name="SeedBox" Grid.Row="1" Grid.Column="1" Margin="8,2" MaxLength="260"/><Button x:Name="GenerateButton" Grid.Row="1" Grid.Column="2" Content="⚒  GENERATE!" Click="Generate_Click" Background="#235B29" MinWidth="145"/>
+      </Grid>
+     </TabItem>
+     <TabItem Header="Generate From Patch File">
+      <Grid Margin="8,5"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="115"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <TextBlock Text="PATCH FILE" Foreground="#E3BB4C" FontWeight="Bold" VerticalAlignment="Center"/><TextBox x:Name="PatchFileBox" Grid.Column="1" Margin="8,2" MaxLength="260"/><Button Grid.Column="2" Content="SELECT FILE" Click="SelectPatchFile_Click" MinWidth="100"/>
+       <CheckBox x:Name="RepatchCosmeticsBox" Grid.Row="1" Grid.Column="1" Content="Override Original Cosmetics" Foreground="#D5DDD7" Margin="8,4" ToolTip="Replaces the cosmetic and sound settings generated in the patch file with those selected on this page."/><Button x:Name="GeneratePatchButton" Grid.Row="1" Grid.Column="2" Content="⚒  GENERATE!" Click="GeneratePatch_Click" Background="#235B29" MinWidth="145"/>
+      </Grid>
+     </TabItem>
+    </TabControl>
+    <Grid Grid.Row="1" Margin="4,2,4,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+     <StackPanel><TextBlock x:Name="StatusText" Text="Loading Original OoTR Electron schema …" Foreground="#AEB9B1"/><TextBlock x:Name="OutputText" Foreground="#718078" FontSize="10" TextTrimming="CharacterEllipsis"/></StackPanel>
+     <StackPanel Grid.Column="1" Orientation="Horizontal"><Button x:Name="ReloadButton" Content="↻ Reload Original" Click="Reload_Click"/><Button x:Name="ConvertButton" Content="✓ Check Settings" Click="Convert_Click"/><Button x:Name="CancelButton" Content="Cancel" Click="Cancel_Click" IsEnabled="False"/></StackPanel>
+    </Grid>
+   </Grid>
+  </Border>
+ </Grid>
+</UserControl>

@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>TrackerOfTime.V2.M8_5.Desktop</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Product>Tracker of Time V2</Product>
+    <Title>Tracker of Time V2</Title>
+    <Company>Deady/Lexen</Company>
+    <Authors>Deady/Lexen</Authors>
+    <Copyright>Copyright © Deady/Lexen</Copyright>
+    <Description>Tracker of Time V2</Description>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets\worldMap.png" />
+    <Resource Include="Assets\Hyrule\*.png" />
+    <Resource Include="Assets\Hyrule\*.jpg" />
+    <Resource Include="Assets\Tracker\**\*.bmp" />
+    <Resource Include="Assets\Tracker\Maps\**\*.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\M8.Application.Core\TrackerOfTime.V2.M8.Application.Core.csproj" />
+    <ProjectReference Include="..\M8.Integration\TrackerOfTime.V2.M8.Integration.csproj" />
+    <ProjectReference Include="..\M8.1.Integration\TrackerOfTime.V2.M8.1.Integration.csproj" />
+    <ProjectReference Include="..\M8.2.Integration\TrackerOfTime.V2.M8.2.Integration.csproj" />
+    <ProjectReference Include="..\M8.3.Integration\TrackerOfTime.V2.M8.3.Integration.csproj" />
+    <ProjectReference Include="..\M8.4.Integration\TrackerOfTime.V2.M8.4.Integration.csproj" />
+  </ItemGroup>
+
+  <Target Name="PrepareProductiveRuntimeDependencies" BeforeTargets="Build">
+    <Exec Condition="'$(DesignTimeBuild)' != 'true'" Command="dotnet restore &quot;$(MSBuildProjectDirectory)\..\GameCore.Host\TrackerOfTime.V2.GameCore.Host.csproj&quot;" />
+    <Exec Condition="'$(DesignTimeBuild)' != 'true'" Command="dotnet build &quot;$(MSBuildProjectDirectory)\..\GameCore.Host\TrackerOfTime.V2.GameCore.Host.csproj&quot; -c Release --no-restore" />
+    <Error Condition="!Exists('..\GameCore.Host\bin\Release\net8.0-windows\TrackerOfTime.V2.GameCore.Host.exe')" Text="GameCore-Voraussetzung fehlt: Release-Apphost wurde nicht erstellt." />
+    <Exec Condition="'$(OS)' == 'Windows_NT'" WorkingDirectory="$(MSBuildProjectDirectory)\..\M8.3.DirectInput.Native" Command="&quot;$(MSBuildProjectDirectory)\..\M8.3.DirectInput.Native\build-fix2l-native.cmd&quot; &quot;$(MSBuildProjectDirectory)\..\M8.3.DirectInput.Native\m83_input_xinput.c&quot; &quot;$(MSBuildProjectDirectory)\..\M8.3.DirectInput.Native\bin\mupen64plus-input-sdl-fix2l.dll&quot;" />
+  </Target>
+
+  <!-- A public release must work outside the source checkout. Publish the separate
+       x64 GameCore process self-contained and stage the OoTR/runtime assets next
+       to the desktop application in the paths used by the existing integration. -->
+  <Target Name="PreparePortablePublishDependencies" BeforeTargets="Publish">
+    <PropertyGroup>
+      <PortableGameCoreDir>$(BaseIntermediateOutputPath)portable-gamecore\</PortableGameCoreDir>
+    </PropertyGroup>
+    <RemoveDir Directories="$(PortableGameCoreDir)" />
+    <Exec Command="dotnet publish &quot;$(MSBuildProjectDirectory)\..\GameCore.Host\TrackerOfTime.V2.GameCore.Host.csproj&quot; -c Release -r win-x64 --self-contained true -o &quot;$(PortableGameCoreDir)&quot;" />
+  </Target>
+
+  <Target Name="StagePortableRuntime" AfterTargets="Publish">
+    <ItemGroup>
+      <PortableOoTR Include="$(MSBuildProjectDirectory)\..\..\third_party\OoTR\**\*" />
+      <PortableOoTRHost Include="$(MSBuildProjectDirectory)\..\OoTR.Host\**\*" />
+      <PortableGameCore Include="$(BaseIntermediateOutputPath)portable-gamecore\**\*" />
+      <PortableInput Include="$(MSBuildProjectDirectory)\..\M8.3.DirectInput.Native\bin\mupen64plus-input-sdl-fix2l.dll" />
+      <PortableNotice Include="$(MSBuildProjectDirectory)\..\..\THIRD_PARTY_NOTICES.md" Condition="Exists('$(MSBuildProjectDirectory)\..\..\THIRD_PARTY_NOTICES.md')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PortableOoTR)" DestinationFiles="@(PortableOoTR->'$(PublishDir)third_party\OoTR\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PortableOoTRHost)" DestinationFiles="@(PortableOoTRHost->'$(PublishDir)src\OoTR.Host\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PortableGameCore)" DestinationFiles="@(PortableGameCore->'$(PublishDir)src\GameCore.Host\bin\Release\net8.0-windows\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PortableInput)" DestinationFolder="$(PublishDir)src\M8.3.DirectInput.Native\bin\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PortableNotice)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

@@ -1,0 +1,9 @@
+{
+  "settings": {
+    "item_pool_value": "balanced",
+    "triforce_hunt": true,
+    "triforce_count_per_world": 60,
+    "triforce_goal_per_world": 60,
+    "shuffle_scrubs": "low"
+  }
+}

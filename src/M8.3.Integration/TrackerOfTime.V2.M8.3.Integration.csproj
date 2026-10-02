@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net8.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><EnableWindowsTargeting>true</EnableWindowsTargeting><Platforms>AnyCPU;x64</Platforms></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\M8.1.Integration\TrackerOfTime.V2.M8.1.Integration.csproj" />
+    <ProjectReference Include="..\M6.SnapshotAdapter\TrackerOfTime.V2.M6.SnapshotAdapter.csproj" />
+  </ItemGroup>
+</Project>
