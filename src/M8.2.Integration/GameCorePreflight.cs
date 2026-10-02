@@ -13,16 +13,16 @@ public sealed record GameCorePreflightResult(
 
 public static class GameCorePreflight
 {
-    public static readonly string[] SupportedRenderers = ["Rice", "Glide64mk2"];
+    public static readonly string[] SupportedRenderers = ["Rice", "Glide64mk2", "GLideN64", "Angrylion"];
 
     public static GameCorePreflightResult Validate(string runtimeRoot, string renderer)
     {
         if (string.IsNullOrWhiteSpace(runtimeRoot) || !Directory.Exists(runtimeRoot))
             throw new DirectoryNotFoundException($"GameCore runtime not found: {runtimeRoot}");
         if (!SupportedRenderers.Contains(renderer, StringComparer.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Unsupported renderer '{renderer}'. Expected Rice or Glide64mk2.");
+            throw new InvalidOperationException($"Unsupported renderer '{renderer}'. Expected Rice, Glide64mk2, GLideN64 or Angrylion.");
 
-        renderer = renderer.Equals("Rice", StringComparison.OrdinalIgnoreCase) ? "Rice" : "Glide64mk2";
+        renderer = SupportedRenderers.First(x => x.Equals(renderer, StringComparison.OrdinalIgnoreCase));
         var bundle = Path.Combine(runtimeRoot, "bundle");
         if (!Directory.Exists(bundle)) throw new DirectoryNotFoundException($"Mupen bundle not found: {bundle}");
         var files = Directory.GetFiles(bundle, "*", SearchOption.AllDirectories);
@@ -34,14 +34,21 @@ public static class GameCorePreflight
         }
 
         var core = One(n => n.Equals("mupen64plus.dll", StringComparison.OrdinalIgnoreCase), "Core");
-        var video = renderer == "Rice"
-            ? One(n => n.Contains("rice", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "Rice")
-            : One(n => n.Contains("glide64", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "Glide64mk2");
+        var video = renderer switch
+        {
+            "Rice" => One(n => n.Contains("rice", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "Rice"),
+            "Glide64mk2" => One(n => n.Contains("glide64mk2", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "Glide64mk2"),
+            "GLideN64" => One(n => n.Contains("gliden64", StringComparison.OrdinalIgnoreCase) && !n.Contains("glide64mk2", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "GLideN64"),
+            "Angrylion" => One(n => n.Contains("angrylion", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "Angrylion"),
+            _ => throw new InvalidOperationException($"Unsupported renderer '{renderer}'.")
+        };
         var audio = One(n => n.Contains("audio", StringComparison.OrdinalIgnoreCase) && n.Contains("sdl", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "AudioSDL");
         var input = One(n => n.Contains("input", StringComparison.OrdinalIgnoreCase) && n.Contains("sdl", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "InputSDL");
         var rsp = One(n => n.Contains("rsp", StringComparison.OrdinalIgnoreCase) && n.Contains("hle", StringComparison.OrdinalIgnoreCase) && n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase), "RspHLE");
 
-        var required = new[] { "mupen64plus.ini", "InputAutoCfg.ini", renderer == "Rice" ? "RiceVideoLinux.ini" : "Glide64mk2.ini" };
+        var required = new List<string> { "mupen64plus.ini", "InputAutoCfg.ini" };
+        if (renderer == "Rice") required.Add("RiceVideoLinux.ini");
+        if (renderer == "Glide64mk2") required.Add("Glide64mk2.ini");
         var roots = new[] { Path.Combine(runtimeRoot, "shared"), Path.Combine(runtimeRoot, "config"), bundle };
         foreach (var name in required)
             if (!roots.Any(root => Directory.Exists(root) && Directory.EnumerateFiles(root, name, SearchOption.AllDirectories).Any()))
@@ -58,9 +65,10 @@ public static class RendererFallbackPolicy
     // M8.2 policy only: deterministic order. It does not hide failures and does not mutate Frozen GameCore.
     public static IReadOnlyList<string> Order(string requested)
     {
-        if (requested.Equals("Rice", StringComparison.OrdinalIgnoreCase)) return ["Rice", "Glide64mk2"];
-        if (requested.Equals("Glide64mk2", StringComparison.OrdinalIgnoreCase)) return ["Glide64mk2", "Rice"];
-        throw new InvalidOperationException($"Unsupported renderer '{requested}'.");
+        if (!GameCorePreflight.SupportedRenderers.Contains(requested, StringComparer.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Unsupported renderer '{requested}'.");
+        var canonical = GameCorePreflight.SupportedRenderers.First(x => x.Equals(requested, StringComparison.OrdinalIgnoreCase));
+        return new[] { canonical }.Concat(GameCorePreflight.SupportedRenderers.Where(x => !x.Equals(canonical, StringComparison.OrdinalIgnoreCase))).ToArray();
     }
 
     public static bool ShouldTryFallback(RendererAttempt first)

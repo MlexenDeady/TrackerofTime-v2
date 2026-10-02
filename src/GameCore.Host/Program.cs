@@ -9,13 +9,13 @@ internal static class Program {
   var files=Directory.GetFiles(bundle,"*",SearchOption.AllDirectories);
   string One(Func<string,bool> pred,string label){var m=files.Where(x=>pred(Path.GetFileName(x))).ToArray();if(m.Length!=1)throw new InvalidOperationException($"{label}: expected exactly one matching DLL, found {m.Length}.");return m[0];}
   string core=One(n=>n.Equals("mupen64plus.dll",StringComparison.OrdinalIgnoreCase),"Core");
-  string rice=One(n=>n.Contains("rice",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"Rice");
-  string glide=One(n=>n.Contains("glide64",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"Glide64mk2");
   string renderer=(Environment.GetEnvironmentVariable("TOT_GAMECORE_RENDERER")??"Rice").Trim();
-  string gfx=renderer.Equals("Rice",StringComparison.OrdinalIgnoreCase)?rice:
-             renderer.Equals("Glide64mk2",StringComparison.OrdinalIgnoreCase)?glide:
-             throw new InvalidOperationException($"Unsupported TOT_GAMECORE_RENDERER '{renderer}'. Expected Rice or Glide64mk2.");
-  renderer=renderer.Equals("Rice",StringComparison.OrdinalIgnoreCase)?"Rice":"Glide64mk2";
+  string gfx;
+  if(renderer.Equals("Rice",StringComparison.OrdinalIgnoreCase)){renderer="Rice";gfx=One(n=>n.Contains("rice",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"Rice");}
+  else if(renderer.Equals("Glide64mk2",StringComparison.OrdinalIgnoreCase)){renderer="Glide64mk2";gfx=One(n=>n.Contains("glide64mk2",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"Glide64mk2");}
+  else if(renderer.Equals("GLideN64",StringComparison.OrdinalIgnoreCase)){renderer="GLideN64";gfx=One(n=>n.Contains("gliden64",StringComparison.OrdinalIgnoreCase)&&!n.Contains("glide64mk2",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"GLideN64");}
+  else if(renderer.Equals("Angrylion",StringComparison.OrdinalIgnoreCase)){renderer="Angrylion";gfx=One(n=>n.Contains("angrylion",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"Angrylion");}
+  else throw new InvalidOperationException($"Unsupported TOT_GAMECORE_RENDERER '{renderer}'. Expected Rice, Glide64mk2, GLideN64 or Angrylion.");
   string audio=One(n=>n.Contains("audio",StringComparison.OrdinalIgnoreCase)&&n.Contains("sdl",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"AudioSDL");
   string input=One(n=>n.Contains("input",StringComparison.OrdinalIgnoreCase)&&n.Contains("sdl",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"InputSDL");
   string rsp=One(n=>n.Contains("rsp",StringComparison.OrdinalIgnoreCase)&&n.Contains("hle",StringComparison.OrdinalIgnoreCase)&&n.EndsWith(".dll",StringComparison.OrdinalIgnoreCase),"RspHLE");

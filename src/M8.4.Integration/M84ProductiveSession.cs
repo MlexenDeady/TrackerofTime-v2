@@ -36,6 +36,7 @@ public sealed class M84ProductiveSession : IAsyncDisposable
     {
         if(started||hostLifetime) throw new InvalidOperationException("A GameCore session is already running.");
         var runtime=await new MupenRuntimeProvisioner(paths.Root,diagnostics).PrepareAsync(ct).ConfigureAwait(false);
+        await M84VideoRuntimeManager.PrepareSelectedRendererAsync(runtime,renderer,diagnostics,ct).ConfigureAwait(false);
         GameCorePreflight.Validate(runtime,renderer);
         try
         {

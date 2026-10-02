@@ -21,6 +21,7 @@ public sealed class OoTRRuntimeWorkspace(string repositoryRoot, string temporary
         Directory.CreateDirectory(RuntimeRoot);
         CopyTree(sourceHost, Path.Combine(RuntimeRoot, "hosts", "OoTR.Host"));
         CopyTree(sourceOoTR, OoTRRoot);
+        EnsureRuntimeHelpers();
         foreach (var relative in RequiredHelpers)
         {
             var p = Path.Combine(OoTRRoot, relative);
@@ -60,6 +61,46 @@ public sealed class OoTRRuntimeWorkspace(string repositoryRoot, string temporary
         Path.Combine("bin", "gzinject", "gzinject.exe"),
         Path.Combine("bin", "minibsdiff", "minibsdiff.exe")
     ];
+
+    // OoTR keeps required native helper tools below its own bin/ directory. Tracker's
+    // repository intentionally ignores generic build bin/ directories, so a source-only
+    // checkout may not contain those upstream runtime tools. Restore them from the pinned
+    // official OoTR release archive into this isolated runtime workspace only.
+    private const string HelperArchiveUrl = "https://github.com/OoTRandomizer/OoT-Randomizer/archive/refs/tags/v9.1.zip";
+
+    private void EnsureRuntimeHelpers()
+    {
+        if (RequiredHelpers.All(relative => File.Exists(Path.Combine(OoTRRoot, relative)))) return;
+
+        var cacheRoot = Path.Combine(temporaryRoot, "OoTR-Dependencies");
+        Directory.CreateDirectory(cacheRoot);
+        var archive = Path.Combine(cacheRoot, "OoT-Randomizer-v9.1.zip");
+        if (!File.Exists(archive))
+        {
+            diagnostics.Write(M8DiagnosticLevel.Info, M8DiagnosticCategory.Randomizer, "Downloading official OoTR v9.1 runtime helpers...");
+            using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(3) };
+            var bytes = http.GetByteArrayAsync(HelperArchiveUrl).GetAwaiter().GetResult();
+            var stagingArchive = archive + ".download";
+            File.WriteAllBytes(stagingArchive, bytes);
+            File.Move(stagingArchive, archive, true);
+        }
+
+        using var zip = ZipFile.OpenRead(archive);
+        foreach (var relative in RequiredHelpers)
+        {
+            var target = Path.Combine(OoTRRoot, relative);
+            if (File.Exists(target)) continue;
+            var normalized = relative.Replace('\\', '/');
+            var entry = zip.Entries.SingleOrDefault(e =>
+                e.FullName.EndsWith("/" + normalized, StringComparison.OrdinalIgnoreCase));
+            if (entry is null)
+                throw new FileNotFoundException($"Official OoTR helper archive does not contain required runtime helper: {relative}");
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            entry.ExtractToFile(target, true);
+        }
+
+        diagnostics.Write(M8DiagnosticLevel.Info, M8DiagnosticCategory.Randomizer, "Official OoTR runtime helpers restored in isolated workspace.");
+    }
 
     private static void CopyTree(string source, string destination)
     {

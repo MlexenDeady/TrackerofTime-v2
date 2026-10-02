@@ -8,9 +8,19 @@ Tracker of Time V2 bundles the OoT Randomizer source used by the Randomizer work
 
 The bundled upstream `third_party/OoTR/LICENSE` states that files are MIT licensed unless stated otherwise, and that folders under a different license include their respective license file. Those upstream license files are retained with the bundled component.
 
+Required OoTR runtime helper binaries may be provisioned from the official OoTRandomizer v9.1 release when they are not present in the source-only checkout. Those helpers remain subject to the upstream OoTR licenses and copyrights.
+
 ## Mupen64Plus
 
 The emulator runtime is not stored in this repository. Tracker of Time V2 provisions the pinned Mupen64Plus 2.6.0 Windows x64 bundle at runtime and verifies its expected SHA-256 before use. Mupen64Plus and its plugins remain subject to their respective upstream licenses and copyrights.
+
+
+### Additional Mupen64Plus video plugins
+
+Tracker of Time V2 can use GLideN64 and Angrylion RDP Plus as optional Mupen64Plus video renderers. These projects are developed independently and remain subject to their own upstream licenses and copyrights.
+
+- GLideN64: https://github.com/gonetz/GLideN64
+- Angrylion RDP Plus: https://github.com/ata4/angrylion-rdp-plus
 
 ## ROMs and game content
 
