@@ -1,6 +1,6 @@
 # Tracker of Time V2
 
-Tracker of Time V2 combines the OoT Randomizer workspace, embedded Mupen64Plus gameplay and live tracker UI in one Windows application.
+Tracker of Time V2 combines the OoT Randomizer workspace, embedded Mupen64Plus gameplay and live tracker UI in one Windows application. gliden64 & Angrylion not working today, fix it later 
 
 ## Build
 
