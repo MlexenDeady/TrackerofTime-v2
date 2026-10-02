@@ -22,4 +22,29 @@ Development milestone gates, frozen-baseline copies, smoke projects, verificatio
 
 ## Third-party software
 
-OoT Randomizer is bundled under its upstream license in `third_party/OoTR/LICENSE`. Mupen64Plus runtime components are provisioned by the application from their pinned upstream release. See `THIRD_PARTY_NOTICES.md` for attribution and distribution notes.
+### OoT Randomizer (OoTR)
+
+Tracker of Time V2 integrates the OoT Randomizer developed by the
+OoTRandomizer project and its contributors.
+
+Official project:
+https://github.com/OoTRandomizer/OoT-Randomizer
+
+OoT Randomizer is not part of Tracker of Time V2 and remains subject
+to its own upstream licenses and copyrights.
+
+The bundled OoTR source and its upstream license are located in
+`third_party/OoTR/`.
+
+### Mupen64Plus
+
+Tracker of Time V2 uses Mupen64Plus for emulation.
+
+Official project:
+https://mupen64plus.org/
+
+Mupen64Plus and its plugins remain subject to their respective
+upstream licenses and copyrights.
+
+See `THIRD_PARTY_NOTICES.md` for additional attribution and
+distribution information.
